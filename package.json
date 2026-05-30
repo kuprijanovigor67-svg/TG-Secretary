@@ -1,0 +1,17 @@
+{
+  "name": "tg-secretary",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@tavily/core": "^0.7.3",
+    "dotenv": "^17.4.2",
+    "form-data": "^4.0.5",
+    "socks-proxy-agent": "^10.0.0",
+    "telegraf": "^4.16.3"
+  }
+}
