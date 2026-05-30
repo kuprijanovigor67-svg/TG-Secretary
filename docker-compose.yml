@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    env_file: .env
+    volumes:
+      - db-data:/app/db.json
+      - whisper-cache:/root/.cache/whisper
+    restart: unless-stopped
+
+volumes:
+  db-data:
+  whisper-cache:
