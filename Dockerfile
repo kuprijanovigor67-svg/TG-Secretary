@@ -11,7 +11,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir openai-whisper
+RUN apt-get install -y rustc cargo \
+    && pip install --no-cache-dir setuptools-rust openai-whisper
 
 WORKDIR /app
 
@@ -20,6 +21,6 @@ RUN npm ci --omit=dev
 
 COPY . .
 
-RUN python -c "import whisper; whisper.load_model('turbo')"
+RUN python -c "import whisper; whisper.load_model('tiny')"
 
 CMD ["node", "index.js"]
