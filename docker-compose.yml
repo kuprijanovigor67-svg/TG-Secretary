@@ -4,7 +4,7 @@ services:
     env_file: .env
     volumes:
       - db-data:/app/db.json
-      - whisper-cache:/root/.cache/whisper
+      - whisper-cache:/root/.cache/huggingface
     restart: unless-stopped
 
 volumes:
