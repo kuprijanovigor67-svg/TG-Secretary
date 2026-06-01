@@ -7,13 +7,14 @@ RUN apt-get update && apt-get install -y \
     python-is-python3 \
     rustc \
     cargo \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir setuptools-rust openai-whisper
+RUN pip install --no-cache-dir tiktoken openai-whisper
 
 WORKDIR /app
 
