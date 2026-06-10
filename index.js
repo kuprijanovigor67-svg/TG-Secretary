@@ -149,7 +149,6 @@ async function speechToText(audioUrl) {
       audio_url: audioUrl,
       task: 'transcribe',
       language: 'ru',
-      is_sync: true,
     }),
   })
 
@@ -160,8 +159,31 @@ async function speechToText(audioUrl) {
     throw new Error(data.error || data.message || 'Ошибка распознавания речи')
   }
 
-  const text = Array.isArray(data.result) ? data.result.join(' ') : (data.text || data.result || '')
-  return text.trim()
+  const requestId = data.request_id
+  if (!requestId) {
+    const text = Array.isArray(data.result) ? data.result.join(' ') : (data.text || data.result || '')
+    return text.trim()
+  }
+
+  for (let i = 0; i < 30; i++) {
+    const poll = await fetch(`${GENAPI_GET_URL}/${requestId}`, {
+      headers: { Authorization: `Bearer ${GENAPI_API_KEY}` },
+    })
+    const result = await poll.json()
+
+    if (result.status === 'success') {
+      const text = Array.isArray(result.result) ? result.result.join(' ') : (result.text || result.result || '')
+      return text.trim()
+    }
+
+    if (result.status === 'error') {
+      throw new Error(result.error || 'Ошибка распознавания речи')
+    }
+
+    await new Promise(r => setTimeout(r, 2000))
+  }
+
+  throw new Error('Таймаут ожидания распознавания речи')
 }
 
 const GENAPI_GET_URL = 'https://api.gen-api.ru/api/v1/request/get'
