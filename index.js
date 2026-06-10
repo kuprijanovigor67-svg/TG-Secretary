@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import { Telegraf, Markup } from 'telegraf'
-import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs'
-import { execSync } from 'node:child_process'
+import { readFileSync, existsSync } from 'node:fs'
 import { tavily } from '@tavily/core'
 const CHAD_API_URL = 'https://ask.chadgpt.ru/api/public/gpt-4o-mini'
 const CHAD_API_KEY = process.env.CHAD_API_KEY
@@ -137,24 +136,32 @@ async function generateImage(prompt) {
   return imageUrl
 }
 
+const WHISPER_URL = 'https://api.gen-api.ru/api/v1/networks/whisper'
+
 async function speechToText(audioUrl) {
-  const dl = await fetch(audioUrl)
-  if (!dl.ok) throw new Error('Не удалось скачать голосовое сообщение')
+  const res = await fetch(WHISPER_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${GENAPI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      audio_url: audioUrl,
+      task: 'transcribe',
+      language: 'ru',
+      is_sync: true,
+    }),
+  })
 
-  const buffer = Buffer.from(await dl.arrayBuffer())
-  const tmpFile = `tmp/voice_${Date.now()}.ogg`
-  writeFileSync(tmpFile, buffer)
+  const data = await res.json()
 
-  try {
-    const result = execSync(`set PYTHONIOENCODING=utf-8 && python transcribe.py "${tmpFile}"`, {
-      encoding: 'utf-8',
-      timeout: 120000,
-      windowsHide: true,
-    })
-    return result.trim()
-  } finally {
-    try { unlinkSync(tmpFile) } catch {}
+  if (!res.ok) {
+    console.error('Whisper API ответ:', JSON.stringify(data, null, 2))
+    throw new Error(data.error || data.message || 'Ошибка распознавания речи')
   }
+
+  const text = Array.isArray(data.result) ? data.result.join(' ') : (data.text || data.result || '')
+  return text.trim()
 }
 
 const GENAPI_GET_URL = 'https://api.gen-api.ru/api/v1/request/get'
